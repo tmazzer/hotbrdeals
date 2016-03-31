@@ -1,0 +1,136 @@
+<!doctype html>
+<html ng-app="hotbrdeals">
+  <head>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+    <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+    <script src="https://code.angularjs.org/1.5.2/angular.js"></script>
+    <style>
+        .table {
+            width: 1000px;
+            text-align: center;
+            margin-top: 20px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+            
+    </style>
+    <script>
+        var app = angular.module('hotbrdeals',[]);
+        app.controller('defaultCtrl',function($scope,$http){
+                
+            //pega todos os posts
+            var pegar = function(){
+                $http.get('/posts').then(function(response){
+                    $scope.posts = response.data; 
+                    console.log(response.data);
+            },function(error){
+                    console.log(error);
+                });       
+            };
+            
+            //adiciona um post
+            var adicionar = function(post){
+            $http.post('/posts', post).then(function(response){
+                console.log(response);
+            },function(error){
+                    console.log(error);
+                });       
+            };
+            
+            $scope.addPost = function(){   
+                var post = {title:$scope.title,description:$scope.description, date: new Date()};
+                adicionar(post); 
+                delete $scope.title;
+                delete $scope.description;
+                $scope.postForm.$setPristine();
+                pegar();
+            } 
+            
+            //deleta um post
+            $scope.removePost = function(id){
+                deletep(id);
+            }
+            
+            var deletep = function(id){
+            $http.delete('/posts/' + id).then(function(response){
+                console.log(id);
+                console.log(response);
+                pegar();
+                }, function(error){
+                    console.log(id);
+                    console.log(error);
+                });       
+            };
+            
+          //atualiza um post
+            $scope.updatePost = function(post){
+                $http.post('/posts', post).then(function(response){
+                console.log(post);
+                console.log(response);
+                pegar();
+                }, function(error){
+                    console.log(id);
+                    console.log(error);
+                });         
+            };
+            
+            pegar();
+            
+        });
+    
+    </script>
+  </head>
+  <body ng-controller="defaultCtrl" > 
+    <div class='container'>
+        <div id="erro">
+        </div>
+        <div class="jumbotron">
+        </div>
+            <form name="postForm">
+                <div class="col-lg-6" style="margin-left: 50px">   
+                    <label for='title'>Titulo:</label>
+                    <input id='title' type="text" name="title" ng-model="title" class='form-control' placeholder="Digite aqui o titulo" ng-required="true"/>
+                    
+                    <pre>{{description}}</pre>
+                    <label for="description">Descriçao:</label>
+                    
+                    <textarea id="description" type="text" name="description" ng-model="description" class='form-control' cols="60" rows="10" placeholder="Digite aqui sua mensagem" ng-required="true" ng-list="&#10;" ng-trim="false"></textarea>
+                </div>
+            </form>
+            <div ng-show="postForm.title.$error.required && postForm.title.$dirty" ng-message="required" class="alert alert-danger">
+               Por favor preencha o nome!
+            </div>
+            <div ng-show="postForm.description.$error.required && postForm.description.$dirty" ng-message="required" class="alert alert-danger">
+               Por favor preencha a descriçao!
+            </div>
+            <div class='col-lg-7'> 
+                <br>  
+                <button ng-click="addPost()" class='btn btn-primary' id='btnAdd' ng-disabled="postForm.$invalid"  style="margin-left: 50px">
+                    adicionar
+                </button>
+            </div>   
+            <div class="col-xs-2 col-sm-6 col-md-12 col-lg-12">   
+                   <table class="table table-striped">
+                        <tr ng-repeat="post in posts | orderBy: '-date'">
+                            
+                            <td><b>{{post.title}}</b><br> 
+                                <div style="text-align: justify;" ng-repeat="desc in post.description track by $index">
+                                    {{desc}}                                   
+                                </div> 
+                                <div style="text-align: right">
+                                    <button ng-click="updatePost(post)" class="btn btn-primary glyphicon glyphicon-edit"></button>
+                                    <button class="btn btn-danger glyphicon glyphicon-trash" ng-click="removePost(post._id)"></button>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+            </div>    
+    </div>
+  </body>
+</html>
